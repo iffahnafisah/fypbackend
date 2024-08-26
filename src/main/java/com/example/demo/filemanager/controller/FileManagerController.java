@@ -1,6 +1,7 @@
 package com.example.demo.filemanager.controller;
 
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.filemanager.model.PythonResponse;
+import com.example.demo.filemanager.model.UploadResponse;
 import com.example.demo.filemanager.service.FileManagerService;
 import com.opencsv.CSVReader;
 
@@ -35,14 +38,16 @@ public class FileManagerController {
 	}
 	
 	@PostMapping("/upload")
-	public String uploadFile(@RequestParam("file") MultipartFile file) {
+	public UploadResponse uploadFile(@RequestParam("file") MultipartFile file) {
+		UploadResponse response = new UploadResponse();
+		
         try {
-        	fileManagerService.uploadToPython(file);
-            return "File uploaded and processed successfully";
+        	response = fileManagerService.uploadToPython(file);
         } catch (Exception e) {
             e.printStackTrace();
-            return "Failed to process the file";
         }
+        
+        return response;
 	}
 	
 }
