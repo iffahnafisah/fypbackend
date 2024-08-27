@@ -7,11 +7,13 @@ import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 
@@ -36,6 +38,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.filemanager.model.ColumnChartResponse;
 import com.example.demo.filemanager.model.LineChartResponse;
 import com.example.demo.filemanager.model.PieChartResponse;
 import com.example.demo.filemanager.model.PythonResponse;
@@ -127,6 +130,7 @@ public class FileManagerService {
 		UploadResponse response = new UploadResponse();
 		List<PieChartResponse> pieChartResponseList = new ArrayList<PieChartResponse>();
 		List<SentimentTableResponse> sentimentTableResponseList = new ArrayList<SentimentTableResponse>();
+		List<ColumnChartResponse> columnChartResponseList = new ArrayList<>();
 		LineChartResponse lineChartResponse = new LineChartResponse();
 		
 		long positiveCount = 0;
@@ -164,6 +168,7 @@ public class FileManagerService {
 		pieChartResponseList.add(neutralPieChart);
 		
 		Map<String, int[]> sentimentMap =this.aggregateSentimentsByMonth(pythonList);
+		Map<String, long[]> sentimentByTopicMap = this.aggregateSentimentByTopic(pythonList);
 		
         // Convert the map to a sorted list by month
         List<Map.Entry<String, int[]>> sortedList = new ArrayList<>(sentimentMap.entrySet());
@@ -177,12 +182,29 @@ public class FileManagerService {
             innerList.add(entry.getValue()[0]);
             innerList.add(entry.getValue()[1]);
             finalList.add(innerList);
+            
         }
+        
+        List<List<Object>> columnChartData = new ArrayList<>();
+        for (Map.Entry<String, long[]> entry : sentimentByTopicMap.entrySet()) {
+            List<Object> dataEntry = new ArrayList<>();
+            dataEntry.add(entry.getKey()); // Sentiment
+            for (long count : entry.getValue()) {
+                dataEntry.add(count); // Counts for each focus area
+            }
+            columnChartData.add(dataEntry);
+        }
+        
+     // Get best and worst focus areas
+        Map<String, String> performanceMap = determineBestAndWorstFocusAreas(sentimentByTopicMap);
         
 		response.setLineChart(finalList);
 		response.setPieChart(pieChartResponseList);
 		response.setSentimentTable(sentimentTableResponseList);
 		response.setTotalSize(pythonList.size());
+		response.setColumnChart(columnChartData);
+		response.setBestFocusArea(performanceMap.get("bestFocusArea"));
+	    response.setPoorFocusArea(performanceMap.get("poorFocusArea"));
 		
 		return response;
 	}
@@ -214,6 +236,71 @@ public class FileManagerService {
         return sentimentMap;
     }
 	
+	public Map<String, long[]> aggregateSentimentByTopic(List<PythonResponse> pythonList) {
+	    // Initialize a map to hold the sentiment counts by focus area
+	    Map<String, long[]> sentimentMap = new LinkedHashMap<>();
+
+	    // Define the focus areas
+	    String[] focusAreas = {"Speed & Stability", "Coverage", "Connectivity", "Customer Solution"};
+
+	    // Initialize the sentiment map for each sentiment type
+	    sentimentMap.put("Negative", new long[focusAreas.length]);
+	    sentimentMap.put("Neutral", new long[focusAreas.length]);
+	    sentimentMap.put("Positive", new long[focusAreas.length]);
+
+	    Logger logger = Logger.getLogger(FileManagerService.class.getName());
+	    
+	    // Iterate over the PythonResponse list to populate the map
+	    for (PythonResponse pythonResponse : pythonList) {
+	        String sentiment = pythonResponse.getSentiment();
+	        String focusArea = pythonResponse.getFocusArea();
+
+	        // Determine the index of the focus area
+	        int index = Arrays.asList(focusAreas).indexOf(focusArea);
+
+	        if (index != -1) {
+	            if ("Positive".equalsIgnoreCase(sentiment)) {
+	                sentimentMap.get("Positive")[index]++;
+	            } else if ("Negative".equalsIgnoreCase(sentiment)) {
+	                sentimentMap.get("Negative")[index]++;
+	            } else if ("Neutral".equalsIgnoreCase(sentiment)) {
+	                sentimentMap.get("Neutral")[index]++;
+	            }
+	        }
+	    }
+
+	    return sentimentMap;
+	}
+
+	public Map<String, String> determineBestAndWorstFocusAreas(Map<String, long[]> sentimentByTopicMap) {
+	    String[] focusAreas = {"Connectivity", "Speed & Stability", "Coverage", "Customer Solution"};
+
+	    // Initialize variables to track the best and worst performing focus areas
+	    String bestFocusArea = "";
+	    String poorFocusArea = "";
+	    long maxPositive = Long.MIN_VALUE;
+	    long maxNegative = Long.MIN_VALUE;
+
+	    // Identify the focus area with the highest positive and negative counts
+	    for (int i = 0; i < focusAreas.length; i++) {
+	        if (sentimentByTopicMap.get("Positive")[i] > maxPositive) {
+	            maxPositive = sentimentByTopicMap.get("Positive")[i];
+	            bestFocusArea = focusAreas[i];
+	        }
+	        if (sentimentByTopicMap.get("Negative")[i] > maxNegative) {
+	            maxNegative = sentimentByTopicMap.get("Negative")[i];
+	            poorFocusArea = focusAreas[i];
+	        }
+	    }
+
+	    // Create and return a map with the results
+	    Map<String, String> performanceMap = new LinkedHashMap<>();
+	    performanceMap.put("bestFocusArea", bestFocusArea);
+	    performanceMap.put("poorFocusArea", poorFocusArea);
+	    
+	    return performanceMap;
+	}
+
 	
     private static int monthIndex(String month) {
         switch (month) {
