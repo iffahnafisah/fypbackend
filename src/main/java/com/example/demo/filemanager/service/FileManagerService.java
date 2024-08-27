@@ -203,6 +203,9 @@ public class FileManagerService {
 		response.setPieChart(pieChartResponseList);
 		response.setSentimentTable(sentimentTableResponseList);
 		response.setTotalSize(pythonList.size());
+		response.setTotalPos(pythonList.size());
+		response.setTotalNeg(pythonList.size());
+		response.setTotalNeu(pythonList.size());
 		response.setColumnChart(columnChartData);
 		response.setBestFocusArea(performanceMap.get("bestFocusArea"));
 	    response.setPoorFocusArea(performanceMap.get("poorFocusArea"));

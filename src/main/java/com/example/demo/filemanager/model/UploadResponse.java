@@ -9,6 +9,9 @@ public class UploadResponse {
 	private List<List<Object>> lineChart;
 	private List<List<Object>> columnChart;
 	private long totalSize;
+	private long totalPos;
+	private long totalNeg;
+	private long totalNeu;
 	private String bestFocusArea;
     private String poorFocusArea;
 	
@@ -32,6 +35,24 @@ public class UploadResponse {
 	}
 	public void setTotalSize(long totalSize) {
 		this.totalSize = totalSize;
+	}
+	public long getTotalPos() {
+		return totalPos;
+	}
+	public void setTotalPos(long totalPos) {
+		this.totalPos = totalPos;
+	}
+	public long getTotalNeg() {
+		return totalNeg;
+	}
+	public void setTotalNeg(long totalNeg) {
+		this.totalNeg = totalNeg;
+	}
+	public long getTotalNeu() {
+		return totalNeu;
+	}
+	public void setTotalNeu(long totalNeu) {
+		this.totalNeu = totalNeu;
 	}
 	public List<List<Object>> getLineChart() {
 		return lineChart;
