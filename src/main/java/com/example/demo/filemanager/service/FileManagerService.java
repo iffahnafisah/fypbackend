@@ -142,6 +142,7 @@ public class FileManagerService {
 			SentimentTableResponse tableResponse = new SentimentTableResponse();
 			tableResponse.setCleanText(pythonResponse.getClean_text());
 			tableResponse.setSentiment(pythonResponse.getSentiment());
+			tableResponse.setFocusArea(pythonResponse.getFocusArea());
 			sentimentTableResponseList.add(tableResponse);
 			
 			
@@ -287,9 +288,17 @@ public class FileManagerService {
 	            maxPositive = sentimentByTopicMap.get("Positive")[i];
 	            bestFocusArea = focusAreas[i];
 	        }
+
+	        else if (sentimentByTopicMap.get("Positive")[i] == maxPositive) {
+		    bestFocusArea += " and " + focusAreas[i];
+	        }
 	        if (sentimentByTopicMap.get("Negative")[i] > maxNegative) {
 	            maxNegative = sentimentByTopicMap.get("Negative")[i];
 	            poorFocusArea = focusAreas[i];
+	        }
+
+	        else if (sentimentByTopicMap.get("Negative")[i] == maxNegative) {
+		    poorFocusArea += " and " + focusAreas[i];
 	        }
 	    }
 

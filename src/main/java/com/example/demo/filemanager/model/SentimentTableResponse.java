@@ -4,6 +4,7 @@ public class SentimentTableResponse {
 
 	private String sentiment;
 	private String cleanText;
+	private String focusArea;
 
 	public String getSentiment() {
 		return sentiment;
@@ -21,5 +22,12 @@ public class SentimentTableResponse {
 		this.cleanText = cleanText;
 	}
 	
+	public String getFocusArea() {
+        return focusArea;  // Getter for the focus area
+    }
+
+    public void setFocusArea(String focusArea) {
+        this.focusArea = focusArea;  // Setter for the focus area
+    }
 	
 }
