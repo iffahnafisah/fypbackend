@@ -170,6 +170,7 @@ public class FileManagerService {
 		
 		Map<String, int[]> sentimentMap =this.aggregateSentimentsByMonth(pythonList);
 		Map<String, long[]> sentimentByTopicMap = this.aggregateSentimentByTopic(pythonList);
+		Map<String, String> trends = this.analyzeSentimentTrends(sentimentMap);
 		
         // Convert the map to a sorted list by month
         List<Map.Entry<String, int[]>> sortedList = new ArrayList<>(sentimentMap.entrySet());
@@ -196,19 +197,21 @@ public class FileManagerService {
             columnChartData.add(dataEntry);
         }
         
-     // Get best and worst focus areas
+        // Get best and worst focus areas
         Map<String, String> performanceMap = determineBestAndWorstFocusAreas(sentimentByTopicMap);
         
 		response.setLineChart(finalList);
 		response.setPieChart(pieChartResponseList);
 		response.setSentimentTable(sentimentTableResponseList);
 		response.setTotalSize(pythonList.size());
-		response.setTotalPos(pythonList.size());
-		response.setTotalNeg(pythonList.size());
-		response.setTotalNeu(pythonList.size());
+		response.setTotalPos(positiveCount);
+		response.setTotalNeg(negativeCount);
+		response.setTotalNeu(neutralCount);
 		response.setColumnChart(columnChartData);
 		response.setBestFocusArea(performanceMap.get("bestFocusArea"));
 	    response.setPoorFocusArea(performanceMap.get("poorFocusArea"));
+	    response.setPositiveTrend(trends.get("positiveTrend"));
+	    response.setNegativeTrend(trends.get("negativeTrend"));
 		
 		return response;
 	}
@@ -312,7 +315,52 @@ public class FileManagerService {
 	    
 	    return performanceMap;
 	}
+	
+	public Map<String, String> analyzeSentimentTrends(Map<String, int[]> sentimentMap) {
+	    // Sort the sentiment map by month to ensure chronological order
+	    List<Map.Entry<String, int[]>> sortedEntries = new ArrayList<>(sentimentMap.entrySet());
+	    sortedEntries.sort(Map.Entry.comparingByKey()); // Assumes months are in a sortable format
 
+	    int size = sortedEntries.size();
+	    int[] positiveCounts = new int[size];
+	    int[] negativeCounts = new int[size];
+
+	    for (int i = 0; i < size; i++) {
+	        Map.Entry<String, int[]> entry = sortedEntries.get(i);
+	        positiveCounts[i] = entry.getValue()[0];
+	        negativeCounts[i] = entry.getValue()[1];
+	    }
+
+	    // Debugging output to verify data
+	    System.out.println("Positive Counts: " + Arrays.toString(positiveCounts));
+	    System.out.println("Negative Counts: " + Arrays.toString(negativeCounts));
+
+	    Map<String, String> trendMap = new LinkedHashMap<>();
+	    trendMap.put("positiveTrend", determineTrend(positiveCounts));
+	    trendMap.put("negativeTrend", determineTrend(negativeCounts));
+
+	    return trendMap;
+	}
+
+	public String determineTrend(int[] counts) {
+	    if (counts.length < 2) {
+	        return "insufficient data";
+	    }
+
+	    int lastMonth = counts[counts.length - 1];
+	    int secondLastMonth = counts[counts.length - 2];
+
+	    System.out.println("Last month count: " + lastMonth);
+	    System.out.println("Second last month count: " + secondLastMonth);
+
+	    if (lastMonth > secondLastMonth) {
+	        return "INCREASE";
+	    } else if (lastMonth < secondLastMonth) {
+	        return "DECREASE";
+	    } else {
+	        return "STAGNANT";
+	    }
+	}
 	
     private static int monthIndex(String month) {
         switch (month) {

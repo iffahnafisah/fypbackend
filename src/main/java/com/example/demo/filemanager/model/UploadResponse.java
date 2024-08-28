@@ -14,6 +14,8 @@ public class UploadResponse {
 	private long totalNeu;
 	private String bestFocusArea;
     private String poorFocusArea;
+    private String positiveTrend;
+	private String negativeTrend;
 	
 	
 	public List<PieChartResponse> getPieChart() {
@@ -59,30 +61,36 @@ public class UploadResponse {
 	}
 	public void setLineChart(List<List<Object>> lineChart) {
 		this.lineChart = lineChart;
-	}
-	
+	}	
 	public List<List<Object>> getColumnChart() {
         return columnChart;
     }
-
     public void setColumnChart(List<List<Object>> columnChart) {
         this.columnChart = columnChart;
     }
-    
     public String getBestFocusArea() {
         return bestFocusArea;
     }
-
     public void setBestFocusArea(String bestFocusArea) {
         this.bestFocusArea = bestFocusArea;
     }
-
     public String getPoorFocusArea() {
         return poorFocusArea;
     }
-
     public void setPoorFocusArea(String poorFocusArea) {
         this.poorFocusArea = poorFocusArea;
     }
+    public String getPositiveTrend() {
+		return positiveTrend;
+	}
+	public void setPositiveTrend(String positiveTrend) {
+		this.positiveTrend = positiveTrend;
+	}
+	public String getNegativeTrend() {
+		return negativeTrend;
+	}
+	public void setNegativeTrend(String negativeTrend) {
+		this.negativeTrend = negativeTrend;
+	}
 	
 }
